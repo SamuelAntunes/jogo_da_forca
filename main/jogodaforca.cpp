@@ -1,252 +1,309 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string>
 #include <iostream>
-#include <time.h>
+#include <cstdlib>
+#include <ctime>
+#include <string>
+#include <vector>
+#include <cctype>
+#include <limits>
+#include <locale>
 
 using namespace std;
 
-void limpaTela(){
-    system("CLS");
+// CÃ³digos ANSI para cores (caso seu terminal suporte)
+#define COLOR_RESET "\033[0m"
+#define COLOR_RED "\033[31m"
+#define COLOR_GREEN "\033[32m"
+#define COLOR_YELLOW "\033[33m"
+#define COLOR_CYAN "\033[36m"
+
+// Funcao para pausar e aguardar que o usuario pressione ENTER
+void pressEnterToContinue() {
+    cout << "\nPressione ENTER para continuar...";
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    cin.get();
 }
 
-string retornaPalavraAleatoria(){
+// Limpa a tela de forma cross-platform
+void limpaTela() {
+#ifdef _WIN32
+    system("CLS");
+#else
+    system("clear");
+#endif
+}
 
-     //Vetor com palavras disponíveis
-    string palavras[3] = {"abacaxi", "manga", "morango"};
+// Exibe a forca de acordo com o numero de erros (0 ate 6)
+void exibeForca(int erros) {
+    cout << COLOR_RED;
+    switch(erros) {
+        case 0:
+            cout << "  +---+\n";
+            cout << "  |   |\n";
+            cout << "      |\n";
+            cout << "      |\n";
+            cout << "      |\n";
+            cout << "      |\n";
+            cout << "=========\n";
+            break;
+        case 1:
+            cout << "  +---+\n";
+            cout << "  |   |\n";
+            cout << "  O   |\n";
+            cout << "      |\n";
+            cout << "      |\n";
+            cout << "      |\n";
+            cout << "=========\n";
+            break;
+        case 2:
+            cout << "  +---+\n";
+            cout << "  |   |\n";
+            cout << "  O   |\n";
+            cout << "  |   |\n";
+            cout << "      |\n";
+            cout << "      |\n";
+            cout << "=========\n";
+            break;
+        case 3:
+            cout << "  +---+\n";
+            cout << "  |   |\n";
+            cout << "  O   |\n";
+            cout << " /|   |\n";
+            cout << "      |\n";
+            cout << "      |\n";
+            cout << "=========\n";
+            break;
+        case 4:
+            cout << "  +---+\n";
+            cout << "  |   |\n";
+            cout << "  O   |\n";
+            cout << " /|\\  |\n";
+            cout << "      |\n";
+            cout << "      |\n";
+            cout << "=========\n";
+            break;
+        case 5:
+            cout << "  +---+\n";
+            cout << "  |   |\n";
+            cout << "  O   |\n";
+            cout << " /|\\  |\n";
+            cout << " /    |\n";
+            cout << "      |\n";
+            cout << "=========\n";
+            break;
+        case 6:
+            cout << "  +---+\n";
+            cout << "  |   |\n";
+            cout << "  O   |\n";
+            cout << " /|\\  |\n";
+            cout << " / \\  |\n";
+            cout << "      |\n";
+            cout << "=========\n";
+            break;
+        default:
+            cout << "  +---+\n";
+            cout << "  |   |\n";
+            cout << "  O   |\n";
+            cout << " /|\\  |\n";
+            cout << " / \\  |\n";
+            cout << "      |\n";
+            cout << "=========\n";
+            break;
+    }
+    cout << COLOR_RESET;
+}
 
-    //Indice gerado no intervalo {0,1,2}
-    int indiceAleatorio = rand() % 3;
-
-    //Exibe a palavra aleatória
-    //cout << palavras[indiceAleatorio];
-
+// Retorna uma palavra aleatoria de uma lista
+string retornaPalavraAleatoria() {
+    vector<string> palavras = {"abacaxi", "manga", "morango", "laranja", "uva", "pera"};
+    int indiceAleatorio = rand() % palavras.size();
     return palavras[indiceAleatorio];
 }
 
-string retornaPalavraComMascara(string palavra, int tamanhoDaPalavra){
-
-    int cont = 0;
-    string palavraComMascara;
-
-    //Coloca uma máscara
-    while(cont < tamanhoDaPalavra){
-        palavraComMascara += "_";
-        cont++;
-    }
-
-    return palavraComMascara;
+// Retorna a palavra mascarada (ex: "_____" para "manga")
+string retornaPalavraComMascara(const string &palavra) {
+    return string(palavra.size(), '_');
 }
 
-void exibeStatus(string palavraComMascara, int tamanhoDaPalavra, int tentativasRestantes, string letrasJaArriscadas, string mensagem){
-
-    //cout << "A palavra secreta eh: " << palavra << "(Tamanho:" << tamanhoDaPalavra << ")";
-    cout << mensagem;
-    cout << "\nPalavra:" << palavraComMascara << "(Tamanho:" << tamanhoDaPalavra << ")";
-    cout << "\nTentativas Restantes:" << tentativasRestantes;
-
-    //Exibe as letras arriscadas
-    int cont;
-    cout << "\nLetras arriscadas:";
-    for(cont = 0; cont < letrasJaArriscadas.size();cont++){
-        cout << letrasJaArriscadas[cont] << ", ";
+// Exibe o status atual do jogo
+void exibeStatus(const string &palavraComMascara, int chancesRestantes,
+                 const string &letrasJaArriscadas, const string &mensagem) {
+    cout << COLOR_CYAN;
+    cout << "====================================\n";
+    cout << mensagem << "\n";
+    cout << "====================================\n";
+    cout << "Palavra: " << palavraComMascara
+         << " (Tamanho: " << palavraComMascara.size() << ")\n";
+    cout << "Chances Restantes: " << chancesRestantes << "\n";
+    cout << "Letras ja arriscadas: ";
+    for (char letra : letrasJaArriscadas) {
+        cout << letra << " ";
     }
-
+    cout << "\n====================================\n";
+    cout << COLOR_RESET;
 }
 
-int jogar(int numeroDeJogadores){
-
-    //Palavra a ser adivinhada
+// Funcao que executa o jogo (modo um ou dois jogadores)
+// Retorna true se o jogador optar por reiniciar, ou false para sair
+bool jogar(int numeroDeJogadores) {
     string palavra;
-
-    //Confere o número de jogadores
-    if(numeroDeJogadores == 1){
-
-        //Palavra a ser adivinhada
+    if (numeroDeJogadores == 1) {
         palavra = retornaPalavraAleatoria();
-
-    }else{
-
-        cout << "\nDigite uma palavra:";
+    } else {
+        limpaTela();
+        cout << "Modo Dupla: Jogador 1, digite a palavra secreta: ";
         cin >> palavra;
-
-    }
-
-    //Tamanho da palavra
-    int tamanhoDaPalavra = palavra.size();
-
-    //Palavra mascarada
-    string palavraComMascara = retornaPalavraComMascara(palavra, tamanhoDaPalavra);
-
-    ///Variáveis Gerais
-    int tentativas = 0, maximoDeTentativas = 10;            //Número de tentativas e erros
-    int cont = 0;                                           //Auxiliar para laços de repetição
-    char letra;                                             //Letra arriscada pelo usuário
-    int opcao;                                              //Opções finais
-    string letrasJaArriscadas;                              //Acumula as tentativas do jogador
-    string mensagem = "Bem vindo ao jogo!";                 //Feedback do jogador
-    string palavraArriscada;                                //Tentativa de arriscar a palavra completa
-    bool jaDigitouLetra = false, acertouLetra = false;      //Auxiliar para saber se a letra já foi digitada
-
-
-    while(palavra != palavraComMascara && maximoDeTentativas - tentativas > 0){
-
         limpaTela();
-
-        //Exibe o status atual do jogo
-        exibeStatus(palavraComMascara, tamanhoDaPalavra, maximoDeTentativas - tentativas, letrasJaArriscadas,mensagem);
-
-        //Lê um palpite
-        cout << "\nDigite uma letra (Ou digite 1 para arriscar a palavra):";
+    }
+    
+    string palavraComMascara = retornaPalavraComMascara(palavra);
+    const int maxErros = 6;
+    int erros = 0;
+    char letra;
+    string letrasJaArriscadas;
+    string mensagem = "Bem vindo ao jogo!";
+    string palavraArriscada;
+    
+    // Loop principal: enquanto a palavra nao for descoberta e os erros forem menores que o maximo
+    while (palavra != palavraComMascara && erros < maxErros) {
+        limpaTela();
+        exibeStatus(palavraComMascara, maxErros - erros, letrasJaArriscadas, mensagem);
+        exibeForca(erros);
+        
+        cout << "\nDigite uma letra (ou digite 1 para arriscar a palavra): ";
         cin >> letra;
-
-        //Se digitar 1 deixa o usuário arriscar a palavra inteira
-        if(letra == '1'){
+        
+        // Opcao de arriscar a palavra completa
+        if (letra == '1') {
+            cout << "Digite sua tentativa para a palavra completa: ";
             cin >> palavraArriscada;
-            if(palavraArriscada == palavra){
-                 palavraComMascara = palavraArriscada;
-            }else{
-                 tentativas = maximoDeTentativas;
+            if (palavraArriscada == palavra) {
+                palavraComMascara = palavra;
+                mensagem = "Voce acertou a palavra!";
+            } else {
+                mensagem = "Palavra incorreta!";
+                erros = maxErros; // Forca o fim do jogo
+            }
+            pressEnterToContinue();
+            continue;
+        }
+        
+        letra = tolower(letra);
+        
+        // Verifica se a letra ja foi digitada
+        if (letrasJaArriscadas.find(letra) != string::npos) {
+            mensagem = "Letra ja utilizada!";
+            pressEnterToContinue();
+            continue;
+        }
+        
+        letrasJaArriscadas.push_back(letra);
+        
+        bool acertouLetra = false;
+        for (size_t i = 0; i < palavra.size(); i++) {
+            if (tolower(palavra[i]) == letra) {
+                palavraComMascara[i] = palavra[i];
+                acertouLetra = true;
             }
         }
-
-        //Percorre as letras já arriscadas
-        for(cont = 0; cont < tentativas; cont++){
-
-            //Se encontrar a letra
-            if(letrasJaArriscadas[cont] == letra){
-
-                mensagem = "Essa letra ja foi digitada!";
-
-                //Indica com a variável booleana
-                jaDigitouLetra = true;
-
-            }
+        
+        if (!acertouLetra) {
+            mensagem = "Voce errou a letra!";
+            erros++;
+        } else {
+            mensagem = "Voce acertou a letra!";
         }
-
-        //Se for uma letra nova
-        if(jaDigitouLetra == false){
-
-            //Incrementa as letras já arriscadas
-            letrasJaArriscadas += tolower(letra);
-
-            //Percorre a palavra real e
-            for(cont = 0; cont < tamanhoDaPalavra; cont++){
-
-                //Se a letra existir na palavra escondida
-                if(palavra[cont] == tolower(letra)){
-
-                    //Faço aquela letra aparecer na palavraComMascara
-                    palavraComMascara[cont] = palavra[cont];
-
-                    acertouLetra = true;
-
-                }
-            }
-
-            if(acertouLetra == false){
-
-                mensagem = "Voce errou uma letra!";
-
-            }else{
-
-                mensagem = "Voce acertou uma letra!";
-
-            }
-
-            //Aumenta uma tentativa realizada
-            tentativas++;
-
-        }
-
-        //Reinicia auxiliares
-        jaDigitouLetra = false;
-        acertouLetra = false;
-
+        
+        pressEnterToContinue();
     }
-
-    if(palavra == palavraComMascara){
-
-        limpaTela();
-        cout << "Parabens, você venceu!";
-        cout << "\nDeseja reiniciar?";
-        cout << "\n1-Sim";
-        cout << "\n2-Nao";
-        cin >> opcao;
-        return opcao;
-
-    }else{
-
-        limpaTela();
-        cout << "Bleh, você perdeu!";
-        cout << "\nDeseja reiniciar?";
-        cout << "\n1-Sim";
-        cout << "\n2-Nao";
-        cin >> opcao;
-        return opcao;
+    
+    limpaTela();
+    int opcao;
+    if (palavra == palavraComMascara) {
+        cout << COLOR_GREEN;
+        cout << "====================================\n";
+        cout << "      PARABENS, VOCE VENCEU!\n";
+        cout << "====================================\n";
+        cout << COLOR_RESET;
+    } else {
+        cout << COLOR_RED;
+        cout << "====================================\n";
+        cout << "      QUE PENA, VOCE PERDEU!\n";
+        cout << "A palavra era: " << palavra << "\n";
+        cout << "====================================\n";
+        cout << COLOR_RESET;
     }
-
+    
+    cout << "\nDeseja reiniciar?\n";
+    cout << "1 - Sim\n";
+    cout << "2 - Nao\n";
+    cout << "Opcao: ";
+    cin >> opcao;
+    return (opcao == 1);
 }
 
-void menuInicial(){
-
-    //Opção escolhida pelo usuário
-    int opcao = 0;
-
-    //Enquanto o jogador não digita uma opcao válida, mostra o menu novamente
-    while(opcao < 1 || opcao > 3){
+// Menu principal do jogo
+void menuInicial() {
+    int opcao;
+    bool continuar = true;
+    while (continuar) {
         limpaTela();
-        cout << "Bem vindo ao Jogo";
-        cout << "\n1 - Jogar Sozinho";
-        cout << "\n2 - Jogar em Dupla";
-        cout << "\n3 - Sobre";
-        cout << "\n4 - Sair";
-        cout << "\nEscolha uma opcao e tecle ENTER:";
-
-        //Faz a leitura da opcao
+        cout << COLOR_CYAN;
+        cout << "====================================\n";
+        cout << "       JOGO DA FORCA - VERSAO 2.0\n";
+        cout << "====================================\n";
+        cout << "1 - Jogar Sozinho\n";
+        cout << "2 - Jogar em Dupla\n";
+        cout << "3 - Sobre\n";
+        cout << "4 - Sair\n";
+        cout << "====================================\n";
+        cout << COLOR_RESET;
+        cout << "Escolha uma opcao: ";
         cin >> opcao;
-
-        //Faz algo de acordo com a opcao escolhida
-        switch(opcao){
+        
+        switch (opcao) {
             case 1:
-                //Inicia o jogo
-                if(jogar(1) == 1){
-                    menuInicial();
-                }
+                if (jogar(1)) continue;
+                else continuar = false;
                 break;
             case 2:
-                //Inicia o jogo
-                if(jogar(2) == 1){
-                    menuInicial();
-                }
+                if (jogar(2)) continue;
+                else continuar = false;
                 break;
             case 3:
-                //Mostra informacoes do Jogo
-                cout << "Informacoes do jogo";
                 limpaTela();
-                cout << "Jogo desenvolvido por Joao em 2017";
-                cout << "\n1 - Voltar";
-                cout << "\n2 - Sair";
+                cout << COLOR_YELLOW;
+                cout << "====================================\n";
+                cout << "             SOBRE O JOGO\n";
+                cout << "====================================\n";
+                cout << "Jogo da Forca desenvolvido por Joao em 2017.\n";
+                cout << "Projeto revisado e melhorado para uma melhor experiencia.\n";
+                cout << "====================================\n";
+                cout << COLOR_RESET;
+                cout << "\n1 - Voltar\n";
+                cout << "2 - Sair\n";
+                cout << "Opcao: ";
                 cin >> opcao;
-                if(opcao == 1){
-                    menuInicial();
-                }
-
+                if (opcao == 2) continuar = false;
                 break;
             case 4:
-                cout << "Ate mais!";
+                cout << "\nObrigado por jogar! Ate mais.\n";
+                continuar = false;
+                break;
+            default:
+                cout << "\nOpcao invalida!";
+                pressEnterToContinue();
                 break;
         }
     }
-
 }
 
-int main(){
-
-    //Para gerar números realmente aleatórios
-    srand( (unsigned)time(NULL));
-
+int main() {
+    // Define a localidade para evitar problemas com caracteres especiais
+    setlocale(LC_ALL, "en_US.UTF-8");
+    
+    // Semente para gerar numeros aleatorios
+    srand(static_cast<unsigned>(time(nullptr)));
+    
     menuInicial();
-
     return 0;
 }
